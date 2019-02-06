@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+chalice = "~=1.7.0"
+requests = "~=2.21.0"
+
+[dev-packages]
+"boto3" = "~=1.9.88"
+autopep8 = "~=1.4.3"
+"flake8" = "~=3.7.5"
+pytest = "~=4.2.0"
+pytest-cov = "~=2.6.1"
+mypy = "~=0.660"
+
+[scripts]
+
+[requires]
+python_version = "3.6"
