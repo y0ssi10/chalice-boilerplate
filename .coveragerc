@@ -1,0 +1,8 @@
+[run]
+branch = True
+omit =
+    tests/*,
+    */site_packages/*
+
+[html]
+directory = junit/site

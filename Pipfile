@@ -16,6 +16,9 @@ pytest-cov = "~=2.6.1"
 mypy = "~=0.660"
 
 [scripts]
+lint = "flake8 app.py tests/ chalicelib/ && mypy app.py tests/ chalicelib/"
+fix = "autopep8 -ivr app.py tests/ chalicelib/"
+test = "pytest --cov=app --cov-config .coveragerc --cov-report=html --junitxml=junit/reports/test-results.xml"
 
 [requires]
 python_version = "3.6"
