@@ -7,5 +7,7 @@
       "lambda_memory_size": 256,
       "lambda_timeout": 28
     }
-  }
+  },
+  "autogen_policy": false,
+  "iam_policy_file": "iam-policy.json"
 }
