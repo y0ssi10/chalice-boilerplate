@@ -1,0 +1,96 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1.9
+
+executors:
+  default:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
+
+commands:
+  pipenv-install-deps:
+    steps:
+      - restore_cache:
+          key: v1-deps-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+      - run: pipenv install --dev
+      - save_cache:
+          key: v1-deps-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - .venv
+
+  setup-aws-cli:
+    steps:
+      - aws-cli/install
+      - run: aws --version
+
+jobs:
+  lint:
+    executor: default
+    steps:
+      - checkout
+      - pipenv-install-deps
+      - run: pipenv run lint
+
+  test:
+    executor: default
+    steps:
+      - checkout
+      - pipenv-install-deps
+      - run: pipenv run test
+      - store_artifacts:
+          path: junit/site
+      - store_test_results:
+          path: junit/reports
+
+  deploy:
+    executor: default
+    parameters:
+      stage:
+        type: enum
+        enum: [ "dev", "staging", "production" ]
+      aws_region:
+        type: string
+        default: us-east-1
+    steps:
+      - checkout
+      - pipenv-install-deps
+      - setup-aws-cli
+      - run: pipenv lock --requirements > requirements.txt
+      - run: pipenv run package --stage << parameters.stage >>
+      - run:
+          name: Deploy artifacts
+          command: |
+            AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+            S3_BUCKET=sam-artifacts-<< parameters.aws_region >>-$AWS_ACCOUNT_ID
+
+            aws cloudformation package \
+              --region << parameters.aws_region >> \
+              --template-file build/packages/sam.json \
+              --s3-bucket $S3_BUCKET \
+              --output-template-file build/packages/output-sam.yaml
+
+            aws cloudformation deploy \
+              --region << parameters.aws_region >> \
+              --template-file build/packages/output-sam.yaml \
+              --stack-name  chalice-boilerplate-<< parameters.stage>> \
+              --capabilities CAPABILITY_IAM \
+              --no-fail-on-empty-changeset
+
+workflows:
+  main:
+    jobs:
+      - lint
+      - test
+      - deploy:
+          requires:
+            - lint
+            - test
+          stage: dev
+          aws_region: us-east-1
+          filters:
+            branches:
+              only: master
