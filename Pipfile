@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-chalice = "~=1.7.0"
 requests = "~=2.21.0"
 
 [dev-packages]
+chalice = "~=1.7.0"
 "boto3" = "~=1.9.88"
 autopep8 = "~=1.4.3"
 "flake8" = "~=3.7.5"
@@ -19,6 +19,7 @@ mypy = "~=0.660"
 lint = "flake8 app.py tests/ chalicelib/ && mypy app.py tests/ chalicelib/"
 fix = "autopep8 -ivr app.py tests/ chalicelib/"
 test = "pytest --cov=app --cov-config .coveragerc --cov-report=html --junitxml=junit/reports/test-results.xml"
+package = "chalice package build/packages/"
 
 [requires]
 python_version = "3.6"
